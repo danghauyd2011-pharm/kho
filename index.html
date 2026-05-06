@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dược — BV Đà Nẵng</title>
+
+<!-- CDN Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<!-- App CSS -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<div id="zoom-root">
+
+<!-- ═══════════════════════════════════════
+   TOP BAR (shared mobile + PC)
+═══════════════════════════════════════ -->
+<header class="topbar" id="topbar">
+  <div class="topbar-logo logo-1" id="u-logo">💊</div>
+  <div class="topbar-title-wrap">
+    <div class="topbar-title" id="u-title">Biên Bản Huỷ Vỏ</div>
+    <div class="topbar-sub">Bệnh Viện Đà Nẵng</div>
+  </div>
+  <div class="topbar-badge" id="u-badge" style="background:var(--c1l);color:var(--c1)">BBHV</div>
+  <div class="topbar-actions">
+    <!-- Zoom controls -->
+    <div class="zoom-controls" title="Phóng to / thu nhỏ">
+      <button class="zoom-btn" onclick="adjustZoom(-0.1)" title="Thu nhỏ">−</button>
+      <span class="zoom-level" id="zoom-label">100%</span>
+      <button class="zoom-btn" onclick="adjustZoom(0.1)" title="Phóng to">+</button>
+    </div>
+    <!-- Mode toggle -->
+    <button class="mode-toggle" id="mode-toggle-btn" onclick="toggleMode()" title="Chuyển chế độ hiển thị">
+      <span class="mt-icon">🖥️</span>
+      <span id="mode-label">PC</span>
+    </button>
+  </div>
+</header>
+
+<!-- PC Sidebar + Content wrapper -->
+<div class="app-shell">
+
+<!-- ═══════════════════════════════════════
+   SIDEBAR (PC only)
+═══════════════════════════════════════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-section">Công cụ</div>
+
+  <!-- App 1: BBHV -->
+  <button class="sidebar-btn active" id="sb-1" onclick="switchApp(1)">
+    <span class="sb-icon">💊</span> Huỷ Vỏ
+    <span class="sb-badge">BBHV</span>
+  </button>
+  <!-- BBHV sub-items -->
+  <div id="sb-bbhv-sub" style="margin-left:10px;display:flex;flex-direction:column;gap:2px">
+    <button class="sidebar-btn active" id="sb-so-tra" onclick="switchTab('tab-so-tra')" style="font-size:12px;padding:7px 10px">
+      <span class="sb-icon" style="font-size:14px">📋</span> Sổ Trả Vỏ
+    </button>
+    <button class="sidebar-btn" id="sb-bien-ban" onclick="switchTab('tab-bien-ban')" style="font-size:12px;padding:7px 10px">
+      <span class="sb-icon" style="font-size:14px">📄</span> Biên Bản
+    </button>
+  </div>
+
+  <div class="sidebar-divider"></div>
+
+  <!-- App 2: TheKho -->
+  <button class="sidebar-btn app2" id="sb-2" onclick="switchApp(2)">
+    <span class="sb-icon">📦</span> Thẻ Kho
+  </button>
+  <div id="sb-tk-sub" style="margin-left:10px;display:none;flex-direction:column;gap:2px">
+    <button class="sidebar-btn app2" id="sb-sc-data" onclick="goScreen('sc-data')" style="font-size:12px;padding:7px 10px">
+      <span class="sb-icon" style="font-size:14px">📁</span> Nhập dữ liệu
+    </button>
+    <button class="sidebar-btn app2" id="sb-sc-the-kho" onclick="goScreen('sc-the-kho')" style="font-size:12px;padding:7px 10px">
+      <span class="sb-icon" style="font-size:14px">📊</span> Thẻ kho
+    </button>
+    <button class="sidebar-btn app2" id="sb-sc-bbkk" onclick="goScreen('sc-bbkk');renderBBKK()" style="font-size:12px;padding:7px 10px">
+      <span class="sb-icon" style="font-size:14px">📋</span> Kiểm kê
+    </button>
+    <button class="sidebar-btn app2" id="sb-sc-bbxnt" onclick="goScreen('sc-bbxnt');renderBBXNT()" style="font-size:12px;padding:7px 10px">
+      <span class="sb-icon" style="font-size:14px">📊</span> XNT Báo cáo
+    </button>
+  </div>
+
+  <div class="sidebar-divider"></div>
+
+  <!-- App 3: TT20 -->
+  <button class="sidebar-btn app3" id="sb-3" onclick="switchApp(3)">
+    <span class="sb-icon">📋</span> TT20
+  </button>
+
+  <div style="flex:1"></div>
+  <div class="sidebar-divider"></div>
+  <!-- Zoom in sidebar -->
+  <div style="padding:8px 10px;display:flex;align-items:center;gap:8px">
+    <span style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Zoom</span>
+    <div class="zoom-controls" style="flex:1;justify-content:center">
+      <button class="zoom-btn" onclick="adjustZoom(-0.1)">−</button>
+      <span class="zoom-level" id="zoom-label-sb">100%</span>
+      <button class="zoom-btn" onclick="adjustZoom(0.1)">+</button>
+    </div>
+    <button class="zoom-btn" onclick="resetZoom()" title="Reset" style="width:auto;padding:0 6px;font-size:10px;font-weight:700;border:1.5px solid var(--border);border-radius:6px;color:var(--t2)">↺</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════
+   MAIN CONTENT AREA
+═══════════════════════════════════════ -->
+<main class="content-area" id="content-area">
+<!-- ═══════════════════════════════════════
+   APP 1: BIÊN BẢN HUỶ VỎ
+═══════════════════════════════════════ -->
+<div id="app-bbhv" class="app-panel active">
+
+  <!-- Inner nav for BBHV -->
+  <nav class="inner-nav" id="bbhv-inner-nav">
+    <button class="inner-tab active" id="nav-so-tra" onclick="switchTab('tab-so-tra')">
+      <div class="it-icon">📋</div>
+      <div class="it-label">Sổ Trả Vỏ</div>
+    </button>
+    <button class="inner-tab tab2" id="nav-bien-ban" onclick="switchTab('tab-bien-ban')">
+      <div class="it-icon">📄</div>
+      <div class="it-label">Biên Bản</div>
+    </button>
+  </nav>
+
+  <!-- ════ SCREEN 1: SỔ TRẢ VỎ ════ -->
+  <div id="tab-so-tra" class="screen active">
+
+    <!-- Hero -->
+    <div class="hero hero-1">
+      <div class="hero-eye">Sổ Trả Vỏ Thuốc</div>
+      <div class="hero-title">Xuất kho → Nhập trả</div>
+      <div class="hero-sub">Tổng hợp dữ liệu vỏ theo ngày &amp; khoa phòng</div>
+      <div class="hero-stats">
+        <div class="hs"><div class="hs-v" id="ss-records">—</div><div class="hs-l">Bản ghi</div></div>
+        <div class="hs"><div class="hs-v" id="ss-dates">—</div><div class="hs-l">Ngày</div></div>
+        <div class="hs"><div class="hs-v" id="ss-depts">—</div><div class="hs-l">Khoa phòng</div></div>
+      </div>
+    </div>
+
+    <!-- Upload files -->
+    <div class="slabel">Chọn file dữ liệu</div>
+    <div class="cat-card">
+      <div class="cat-card-header">
+        <div class="cat-icon ci-blue">📤</div>
+        <div class="cat-title-wrap">
+          <div class="cat-title">File Xuất Kho</div>
+          <div class="cat-sub">Loại chứng từ: Chuyển kho</div>
+        </div>
+      </div>
+      <div style="padding:12px">
+        <div class="upload-zone" id="dz-export" onclick="document.getElementById('fi-export').click()">
+          <input type="file" id="fi-export" accept=".xlsx,.xls">
+          <div class="upload-icon">📂</div>
+          <div class="upload-title">Nhấn hoặc kéo thả file .xlsx</div>
+          <div class="upload-file hidden" id="fn-export"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cat-card">
+      <div class="cat-card-header">
+        <div class="cat-icon ci-red">📥</div>
+        <div class="cat-title-wrap">
+          <div class="cat-title">File Nhập Trả</div>
+          <div class="cat-sub">Loại chứng từ: Trả thuốc theo yêu cầu</div>
+        </div>
+      </div>
+      <div style="padding:12px">
+        <div class="upload-zone" id="dz-import" onclick="document.getElementById('fi-import').click()">
+          <input type="file" id="fi-import" accept=".xlsx,.xls">
+          <div class="upload-icon">📂</div>
+          <div class="upload-title">Nhấn hoặc kéo thả file .xlsx</div>
+          <div class="upload-file hidden" id="fn-import"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice n-blue">
+      <span class="n-i">ℹ️</span>
+      <span>Seduxen tự động bị loại · Vỏ hằng ngày = Xuất − Nhập trả</span>
+    </div>
+
+    <!-- Date filter -->
+    <div class="slabel">Lọc thời gian</div>
+    <div class="card card-p">
+      <div class="date-pair" style="margin-bottom:10px">
+        <div class="field">
+          <label class="field-label">Từ ngày</label>
+          <input type="date" id="date-from" class="input">
+        </div>
+        <div class="field">
+          <label class="field-label">Đến ngày</label>
+          <input type="date" id="date-to" class="input">
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="clearDates()">✕ Xoá bộ lọc</button>
+    </div>
+
+    <button class="btn btn-primary" id="process-btn" onclick="processAll()" style="height:52px;font-size:15px;">
+      ⚡ Xử lý dữ liệu
+    </button>
+
+    <div id="error-box" class="notice n-red hidden">
+      <span class="n-i">⚠️</span>
+      <span id="error-text"></span>
+    </div>
+
+    <!-- Result -->
+    <div id="result-section" class="hidden" style="display:flex;flex-direction:column;gap:12px">
+      <div class="stat-grid" id="stats-row"></div>
+
+      <div class="notice n-green" id="date-range-notice">
+        <span class="n-i">📅</span>
+        <span id="date-range-text"></span>
+      </div>
+
+      <div class="flex-row">
+        <button class="btn btn-green" style="flex:1" onclick="downloadExcel()">⬇️ Tải Sổ Trả Vỏ</button>
+        <button class="btn btn-ghost" style="width:auto;padding:0 14px" onclick="resetResult()">🔄</button>
+      </div>
+
+      <div class="slabel">Xem trước dữ liệu</div>
+      <div class="card">
+        <div style="padding:10px 14px 8px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)">
+          <div class="ci ci-purple" style="width:30px;height:30px;font-size:14px">📊</div>
+          <div class="c-title" id="table-title" style="font-size:12px">Xem trước</div>
+        </div>
+        <div class="table-wrap">
+          <table id="preview-table"></table>
+        </div>
+      </div>
+
+      <div class="slabel">Mô phỏng A4 — Mẫu sổ trả vỏ</div>
+      <div class="prev-wrap">
+        <div class="prev-hdr">Xem trước file Excel xuất ra</div>
+        <div class="prev-scroll" id="so-tra-preview-wrap">
+          <div class="a4-scaler" id="so-tra-preview-scaler">
+            <div class="a4-page" style="padding:20px 24px;min-height:200px" id="so-tra-preview-page">
+              <div class="a4-empty"><div class="a4-empty-icon">📋</div><div>Dữ liệu hiển thị sau khi xử lý</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-so-tra -->
+
+  <!-- ════ SCREEN 2: BIÊN BẢN ════ -->
+  <div id="tab-bien-ban" class="screen">
+
+    <div id="bb-data-status" class="notice n-orange">
+      <span class="n-i">⚠️</span>
+      <span>Chưa có dữ liệu. Vui lòng vào <strong>Sổ Trả Vỏ</strong> và xử lý trước.</span>
+    </div>
+
+    <!-- Sub-tabs -->
+    <div class="pill-tabs">
+      <button class="pill-tab active" id="sbtab-daily" onclick="switchSubTab('daily')">📝 Hằng Ngày</button>
+      <button class="pill-tab" id="sbtab-monthly" onclick="switchSubTab('monthly')">📅 Cả Tháng</button>
+    </div>
+
+    <!-- ── DAILY ── -->
+    <div class="pill-panel active" id="sbpanel-daily">
+
+      <div id="daily-no-data" class="notice n-orange">
+        <span class="n-i">📭</span><span>Chưa có dữ liệu ngày</span>
+      </div>
+
+      <div id="daily-content" class="hidden" style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card-p">
+          <div class="date-pair" style="margin-bottom:10px">
+            <div class="field">
+              <label class="field-label">Từ ngày</label>
+              <input type="date" id="bb-date-from" class="input" onchange="refreshDateChips()">
+            </div>
+            <div class="field">
+              <label class="field-label">Đến ngày</label>
+              <input type="date" id="bb-date-to" class="input" onchange="refreshDateChips()">
+            </div>
+          </div>
+          <div class="chip-actions" style="margin-bottom:8px">
+            <button class="btn btn-ghost btn-sm" onclick="selectAllDates()">✓ Chọn tất cả</button>
+            <button class="btn btn-ghost btn-sm" onclick="deselectAllDates()">✕ Bỏ chọn</button>
+            <span class="chip-count" id="selected-count"></span>
+          </div>
+          <div class="chip-bar" id="date-chips"></div>
+          <div class="notice n-blue mt-2" style="font-size:11px">
+            <span class="n-i">💡</span>
+            <span>Tap chip để chọn · T7+CN tự động gộp · Xem trước tức thì</span>
+          </div>
+        </div>
+
+        <button class="btn btn-green" onclick="exportDailyBB()" id="btn-export-daily" style="height:50px;font-size:14px">
+          ⬇️ Xuất Biên Bản Hằng Ngày (.docx)
+        </button>
+
+        <div id="daily-results" class="result-list hidden"></div>
+
+        <div class="slabel">Xem trước biên bản</div>
+        <div class="preview-wrap">
+          <div class="preview-header">Biên Bản Hằng Ngày</div>
+          <div class="preview-scroll" id="a4-daily-wrap">
+            <div class="a4-scaler" id="a4-daily-scaler">
+              <div class="a4-page" id="a4-daily-preview">
+                <div class="a4-empty"><div class="a4-empty-icon">📄</div><div>Chọn ngày để xem trước</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MONTHLY ── -->
+    <div class="pill-panel" id="sbpanel-monthly">
+
+      <div id="monthly-no-data" class="notice n-orange">
+        <span class="n-i">📭</span><span>Chưa có dữ liệu</span>
+      </div>
+
+      <div id="monthly-content" class="hidden" style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card-p">
+          <div class="date-pair" style="margin-bottom:10px">
+            <div class="field">
+              <label class="field-label">Từ ngày</label>
+              <input type="date" id="bb-month-from" class="input" onchange="onMonthRangeChange()">
+            </div>
+            <div class="field">
+              <label class="field-label">Đến ngày</label>
+              <input type="date" id="bb-month-to" class="input" onchange="onMonthRangeChange()">
+            </div>
+          </div>
+          <div id="monthly-preview"></div>
+        </div>
+
+        <button class="btn btn-orange" onclick="exportMonthlyBB()" id="btn-export-monthly" style="height:50px;font-size:14px">
+          ⬇️ Xuất Biên Bản Cả Tháng (.docx)
+        </button>
+
+        <div class="slabel">Xem trước biên bản</div>
+        <div class="preview-wrap">
+          <div class="preview-header">Biên Bản Cả Tháng</div>
+          <div class="preview-scroll" id="a4-monthly-wrap">
+            <div class="a4-scaler" id="a4-monthly-scaler">
+              <div class="a4-page" id="a4-monthly-preview">
+                <div class="a4-empty"><div class="a4-empty-icon">📅</div><div>Chọn khoảng thời gian để xem trước</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="bb-error-box" class="notice n-red hidden">
+      <span class="n-i">⚠️</span>
+      <span id="bb-error-text"></span>
+    </div>
+
+  </div><!-- /tab-bien-ban -->
+
+</div><!-- /app-bbhv -->
+
+<!-- ═══════════════════════════════════════
+   APP 2: THẺ KHO
+═══════════════════════════════════════ -->
+<div id="app-tk" class="app-panel">
+
+  <!-- Screen 1: Upload -->
+  <div id="sc-data" class="screen active">
+
+    <div class="hero hero-2">
+      <div class="hero-eye">Thẻ Kho Thuốc GN-HT-TC</div>
+      <div class="hero-title">Quản Lý Thẻ Kho</div>
+      <div class="hero-sub">Upload file Xuất / Nhập · Xem &amp; in thẻ kho theo mã hàng</div>
+      <div class="hero-stats">
+        <div class="hs"><div class="hs-v" id="hs-ma">—</div><div class="hs-l">Mã hàng</div></div>
+        <div class="hs"><div class="hs-v" id="hs-xuat">—</div><div class="hs-l">Dòng xuất</div></div>
+        <div class="hs"><div class="hs-v" id="hs-nhap">—</div><div class="hs-l">Dòng nhập</div></div>
+      </div>
+    </div>
+
+    <div class="slabel">Chọn file dữ liệu</div>
+
+    <div class="cat-card">
+      <div class="cat-card-header">
+        <div class="cat-icon ci-blue">📤</div>
+        <div class="cat-title-wrap">
+          <div class="cat-title">File Xuất Kho</div>
+          <div class="cat-sub">Chuyển kho · Xuất chuyển kho · Xuất tủ trực</div>
+        </div>
+      </div>
+      <div style="padding:10px">
+        <div class="upz" id="dz-xuat" onclick="document.getElementById('fi-xuat').click()">
+          <input type="file" id="fi-xuat" accept=".xlsx,.xls">
+          <div class="upz-icon">📂</div>
+          <div class="upz-title">Nhấn hoặc kéo thả file .xlsx</div>
+          <div class="upz-fn hidden" id="fn-xuat"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cat-card">
+      <div class="cat-card-header">
+        <div class="cat-icon ci-red">📥</div>
+        <div class="cat-title-wrap">
+          <div class="cat-title">File Nhập Kho</div>
+          <div class="cat-sub">Nhập kho · Trả thuốc · Nhập tủ trực</div>
+        </div>
+      </div>
+      <div style="padding:10px">
+        <div class="upz" id="dz-nhap" onclick="document.getElementById('fi-nhap').click()">
+          <input type="file" id="fi-nhap" accept=".xlsx,.xls">
+          <div class="upz-icon">📂</div>
+          <div class="upz-title">Nhấn hoặc kéo thả file .xlsx</div>
+          <div class="upz-fn hidden" id="fn-nhap"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cat-card">
+      <div class="cat-card-header">
+        <div class="cat-icon ci-green">📊</div>
+        <div class="cat-title-wrap">
+          <div class="cat-title">Tồn Kho</div>
+          <div class="cat-sub">Tuỳ chọn · Nếu không có → nhập tay hoặc bỏ qua</div>
+        </div>
+      </div>
+      <div style="padding:10px">
+        <div class="upz" id="dz-ton" onclick="document.getElementById('fi-ton').click()">
+          <input type="file" id="fi-ton" accept=".xlsx,.xls,.csv">
+          <div class="upz-icon">📂</div>
+          <div class="upz-title">Nhấn hoặc kéo thả file .xlsx</div>
+          <div class="upz-fn hidden" id="fn-ton"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice n-blue">
+      <span class="n-i">ℹ️</span>
+      <span>Xuất = Chuyển kho + Xuất chuyển kho + Xuất tủ trực<br>Nhập = Nhập kho + Trả thuốc + Nhập tủ trực</span>
+    </div>
+
+    <button class="btn btn-green" id="btn-process" onclick="processData()" style="height:52px;font-size:15px">
+      ⚡ Xử lý dữ liệu
+    </button>
+    <!-- GitHub Sync for BBKK -->
+    <div class="gh-sync-panel" style="margin-top:12px">
+      <h4>☁️ GitHub Sync — Lưu/Tải BBKK đổi máy không mất dữ liệu</h4>
+      <p style="font-size:11px;color:#8fa3c0;margin-bottom:8px">
+        Lưu BBKK cuối tháng lên GitHub — <strong>đổi máy/xoá cache vẫn giữ nguyên dữ liệu</strong>.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px">
+        <label style="font-size:11px;color:#8fa3c0;font-weight:600">GitHub Token (PAT — Settings → Developer settings → PAT)</label>
+        <input class="gh-input" id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <label style="font-size:11px;color:#8fa3c0;font-weight:600;margin-top:4px">Repository (owner/repo-name)</label>
+        <input class="gh-input" id="gh-repo" type="text" placeholder="danghauy/kho-thuoc">
+        <div id="gh-status"></div>
+      </div>
+      <div class="gh-row">
+        <button class="btn btn-ghost" style="color:#7ee8c9;border-color:#30363d" onclick="gh_saveConfig()">💾 Lưu cấu hình</button>
+        <button class="btn btn-ghost" style="color:#58a6ff;border-color:#30363d" onclick="gh_pushBBKK()">⬆️ Lưu BBKK lên GH</button>
+        <button class="btn btn-ghost" style="color:#3fb950;border-color:#30363d" onclick="gh_pullBBKK()">⬇️ Tải BBKK từ GH</button>
+      </div>
+      <div id="gh-bbkk-status" style="display:none;margin-top:6px;font-size:12px"></div>
+    </div>
+
+
+    <div id="err-box" class="notice n-red hidden">
+      <span class="n-i">⚠️</span><span id="err-txt"></span>
+    </div>
+
+  </div>
+
+  <!-- Screen 2: Tồn kho nhập tay -->
+  <div id="sc-ton" class="screen">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="ci ci-green">📊</div>
+        <div><div class="c-title">Tồn Kho Cuối Tháng Trước</div><div class="c-sub">Nhập tay hoặc bỏ qua (= 0)</div></div>
+      </div>
+      <div class="card-p">
+        <div class="notice n-orange" style="margin-bottom:10px">
+          <span class="n-i">⚠️</span><span>Không tìm thấy file tồn kho. Nhập số lượng tồn cuối tháng trước, hoặc bỏ qua để mặc định = 0.</span>
+        </div>
+        <div class="table-wrap" style="max-height:360px">
+          <table class="ton-table">
+            <thead><tr><th>Mã hàng</th><th>Tên thuốc</th><th style="text-align:right">Tồn (cái)</th></tr></thead>
+            <tbody id="ton-tbody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-green" style="flex:1" onclick="confirmTon()">✅ Xác nhận & Xử lý</button>
+          <button class="btn btn-ghost" style="width:auto;padding:0 14px" onclick="skipTon()">Bỏ qua</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Thẻ kho -->
+  <div id="sc-the-kho" class="screen">
+    <div class="stat-grid" id="tk-stats"></div>
+
+    <button class="btn btn-green" onclick="goScreen('sc-bbkk');renderBBKK()" style="height:46px">
+      📋 Xem Biên Bản Kiểm Kê Cuối Tháng
+    </button>
+
+    <div class="slabel">Chọn mã hàng — Thẻ kho</div>
+    <div class="card card-p">
+      <input class="input" id="drug-search" placeholder="🔍 Tìm tên thuốc hoặc mã hàng..." oninput="filterDrugs()" style="margin-bottom:10px">
+      <div class="drug-list" id="drug-list"></div>
+    </div>
+
+    <div id="tk-preview-area" class="hidden" style="display:flex;flex-direction:column;gap:12px">
+      <div class="slabel">Thẻ kho đang xem</div>
+      <div class="card card-p" style="display:flex;align-items:center;gap:10px">
+        <div class="ci ci-purple">💊</div>
+        <div style="flex:1">
+          <div id="sel-name" style="font-size:14px;font-weight:800;color:var(--t1)"></div>
+          <div id="sel-meta" style="font-size:11px;color:var(--t2)"></div>
+        </div>
+      </div>
+
+      <div class="exp-row">
+        <button class="btn btn-green" style="flex:1" onclick="exportExcel()">📊 Xuất Excel</button>
+        <button class="btn btn-orange" style="flex:1" onclick="exportPDF()">🖨️ In / PDF</button>
+      </div>
+
+      <div class="prev-wrap">
+        <div class="prev-hdr">Xem trước thẻ kho</div>
+        <div class="prev-scroll" id="prev-scroll">
+          <div class="a4-scaler" id="a4-scaler">
+            <div class="a4-page" id="a4-page">
+              <div class="a4-empty"><div class="a4-empty-icon">📋</div><div>Chọn mã hàng để xem thẻ kho</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="no-drug-selected" class="notice n-blue">
+      <span class="n-i">👆</span><span>Chọn một mã hàng / tên thuốc ở trên để xem thẻ kho</span>
+    </div>
+  </div>
+
+  <!-- ════ BIÊN BẢN KIỂM KÊ CUỐI THÁNG ════ -->
+  <div id="sc-bbkk" class="screen">
+
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 0 0">
+      <button class="btn btn-ghost btn-sm" onclick="goScreen('sc-the-kho')">← Quay lại</button>
+    </div>
+    <div class="hero hero-2">
+      <div class="hero-eye">Kiểm Kê Kho Dược</div>
+      <div class="hero-title">Biên Bản Kiểm Kê</div>
+      <div class="hero-sub">Tồn kho cuối tháng — xuất Excel / PDF để nạp tháng sau</div>
+      <div class="hero-stats">
+        <div class="hs"><div class="hs-v" id="bbkk-count">—</div><div class="hs-l">Mặt hàng</div></div>
+        <div class="hs"><div class="hs-v" id="bbkk-total">—</div><div class="hs-l">Tổng vỏ tồn</div></div>
+        <div class="hs"><div class="hs-v" id="bbkk-month">—</div><div class="hs-l">Tháng</div></div>
+      </div>
+    </div>
+
+    <div class="notice n-blue">
+      <span class="n-i">ℹ️</span>
+      <span>File xuất có thể dùng làm <strong>file tồn kho</strong> để nạp vào tháng sau · Định dạng cột: Mã hàng | Số lượng</span>
+    </div>
+
+    <div class="flex-row">
+      <button class="btn btn-green" style="flex:1;height:48px" onclick="exportBBKK_Excel()">📊 Xuất Excel</button>
+      <button class="btn btn-orange" style="flex:1;height:48px" onclick="exportBBKK_PDF()">🖨️ In / PDF</button>
+    </div>
+
+    <div class="slabel">Mô phỏng A4 — Biên bản kiểm kê</div>
+    <div class="prev-wrap">
+      <div class="prev-hdr">Biên Bản Kiểm Kê Cuối Tháng</div>
+      <div class="prev-scroll" id="bbkk-wrap">
+        <div class="a4-scaler" id="bbkk-scaler">
+          <div class="a4-page" style="padding:36px 48px" id="bbkk-page">
+            <div class="a4-empty"><div class="a4-empty-icon">📋</div><div>Xử lý dữ liệu để xem biên bản kiểm kê</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══ SCREEN: BÁO CÁO XNT ═══ -->
+  <div id="sc-bbxnt" class="screen">
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 0 4px">
+      <button class="btn btn-ghost btn-sm" onclick="goScreen('sc-the-kho')">← Thẻ kho</button>
+      <span style="font-size:13px;font-weight:700;color:var(--t1)">Báo cáo Xuất Nhập Tồn</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="bbxnt-stats">
+      <div class="bbxnt-stat-card">
+        <div class="bbxnt-stat-val" id="bbxnt-stat-hang">—</div>
+        <div class="bbxnt-stat-lbl">Mặt hàng</div>
+      </div>
+      <div class="bbxnt-stat-card" style="--c:#00897b">
+        <div class="bbxnt-stat-val" id="bbxnt-stat-nhap" style="color:#00897b">—</div>
+        <div class="bbxnt-stat-lbl">Tổng nhập</div>
+      </div>
+      <div class="bbxnt-stat-card">
+        <div class="bbxnt-stat-val" id="bbxnt-stat-xuat" style="color:#e53935">—</div>
+        <div class="bbxnt-stat-lbl">Thực xuất</div>
+      </div>
+      <div class="bbxnt-stat-card">
+        <div class="bbxnt-stat-val" id="bbxnt-stat-cuoi" style="color:#6d4c41">—</div>
+        <div class="bbxnt-stat-lbl">Tồn cuối kỳ</div>
+      </div>
+    </div>
+
+    <!-- GitHub BBKK pull for prev ton -->
+    <div class="gh-sync-panel" style="margin-bottom:10px">
+      <h4>☁️ Tồn đầu kỳ — Tải BBKK tháng trước từ GitHub</h4>
+      <p style="font-size:11px;color:#8fa3c0;margin-bottom:8px">
+        Kéo dữ liệu kiểm kê cuối tháng trước về để dùng làm <strong>Tồn đầu kỳ</strong> tự động.
+        Đặc biệt hữu ích khi đổi máy tính.
+      </p>
+      <button class="btn btn-ghost" style="color:#7ee8c9;border-color:#30363d" onclick="gh_pullBBKK()">
+        ⬇️ Tải BBKK tháng trước từ GitHub
+      </button>
+      <div id="gh-bbkk-status" style="display:none"></div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex-row" style="gap:8px;margin-bottom:10px">
+      <button class="btn btn-green" style="flex:1;height:42px" onclick="exportBBXNT_Excel()">
+        📊 Xuất Excel
+      </button>
+      <button class="btn" style="flex:1;height:42px;background:#e65100;color:#fff" onclick="exportBBXNT_PDF()">
+        🖨️ In / PDF
+      </button>
+    </div>
+
+    <!-- A4 Preview -->
+    <div class="slabel" style="margin-bottom:6px">Xem trước A4 ngang</div>
+    <div id="bbxnt-preview-wrap">
+      <div id="bbxnt-preview">
+        <div style="padding:40px;text-align:center;color:#888;font-size:14px">
+          ⚠ Xử lý dữ liệu Xuất + Nhập để xem báo cáo
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app-tk -->
+
+<!-- ═══════════════════════════════════════
+   APP 3: TT20
+═══════════════════════════════════════ -->
+<div id="app-tt20" class="app-panel">
+  <div class="screen active" style="padding-top:16px">
+
+    <div class="hero hero-3">
+      <div class="hero-eye">Công Cụ Điều Tra</div>
+      <div class="hero-title">Thông Tư 20/2022</div>
+      <div class="hero-sub">Tự động điền cột TT20 và Lưu ý kê đơn vào Phụ lục I</div>
+    </div>
+
+    <div class="tt20-card">
+      <h1>🏥 Công cụ Điền STT Thông tư 20/2022</h1>
+      <p class="subtitle">Tự động điền cột TT20 và Lưu ý kê đơn vào Phụ lục I bệnh viện</p>
+      <div class="badge">✅ Dữ liệu TT20/2022 đã được nhúng sẵn – 1.047 hoạt chất</div>
+
+      <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px;display:block;opacity:.4">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <p id="dropText" style="font-size:13px;font-weight:700;color:var(--t1)">Kéo thả file Excel vào đây hoặc nhấn để chọn</p>
+        <span style="font-size:11px;color:var(--t2)">Chấp nhận file .xlsx – Phụ lục I Bệnh viện Đà Nẵng</span>
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx" style="display:none">
+
+      <div class="progress-bar" id="progressBar" style="display:none"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+      <button class="tt20-btn tt20-btn-primary" id="processBtn" onclick="processFile()" disabled style="margin-top:12px">
+        ⚙️ Xử lý và Tải file kết quả
+      </button>
+
+      <div class="result-box" id="resultBox" style="display:none"></div>
+
+      <div class="footer">Dữ liệu nguồn: Thông tư số 20/2022/TT-BYT ngày 31/12/2022 – Bộ Y tế | Bệnh viện Đà Nẵng 2026</div>
+    </div>
+
+  </div>
+</div><!-- /app-tt20 -->
+</main><!-- /content-area -->
+</div><!-- /app-shell -->
+
+<!-- ═══════════════════════════════════════
+   BOTTOM NAV (Mobile only)
+═══════════════════════════════════════ -->
+<nav class="u-nav">
+  <button class="u-nb active" id="unb-1" onclick="switchApp(1)">
+    <div class="u-ni">💊</div>
+    <div class="u-nl">Huỷ Vỏ</div>
+  </button>
+  <button class="u-nb app2" id="unb-2" onclick="switchApp(2)">
+    <div class="u-ni">📦</div>
+    <div class="u-nl">Thẻ Kho</div>
+  </button>
+  <button class="u-nb app3" id="unb-3" onclick="switchApp(3)">
+    <div class="u-ni">📋</div>
+    <div class="u-nl">TT20</div>
+  </button>
+</nav>
+
+</div><!-- /zoom-root -->
+
+
+
+
+
+<script>
+
+// ═══ APP 2: THE KHO JS ═══
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let xuatWB = null, nhapWB = null, tonWB = null;
+let allXuat = [], allNhap = [];
+let drugMap = {};      // maHang → {name, hamluong, rows[]}
+let tonMap  = {};      // maHang → số tồn cuối tháng trước
+let selectedMa = null;
+let processedOK = false;
+
+// ── Hiển thị số lượng: 1-9 → 01-09, ≥10 bình thường ──
+function fmtQty(n) {
+  if (n === 0 || n === '' || n === null || n === undefined) return '';
+  const num = Number(n);
+  if (isNaN(num)) return String(n);
+  return num > 0 && num < 10 ? String(num).padStart(2, '0') : num.toLocaleString('vi-VN');
+}
+function fmtQtyAlways(n) {
+  // Dùng cho cột Tồn — luôn hiện kể cả 0
+  const num = Number(n);
+  if (isNaN(num)) return String(n);
+  return num >= 0 && num < 10 ? String(num).padStart(2, '0') : num.toLocaleString('vi-VN');
+}
+
+// Loại chứng từ phân loại
+const XUAT_TYPES = ['Chuyển kho','Xuất chuyển kho','Xuất tủ trực','Xuất thuốc đến tủ trực','Xuất kho đến tủ trực'];
+const NHAP_TYPES = ['Nhập kho','Trả thuốc theo yêu cầu','Trả thuốc từ tủ trực','Nhập kho từ tủ trực','Nhập tủ trực','Xuất chuyển kho'];
+const TRA_TYPES  = ['Trả thuốc theo yêu cầu','Trả thuốc từ tủ trực','Nhập kho từ tủ trực'];
+const TU_TRUC_XUAT = ['Xuất tủ trực','Xuất thuốc đến tủ trực','Xuất kho đến tủ trực'];
+const TU_TRUC_NHAP = ['Trả thuốc từ tủ trực','Nhập kho từ tủ trực','Nhập tủ trực'];
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function goScreen(id) {
+  document.querySelectorAll('#app-tk .screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='sc-the-kho') setTimeout(scaleA4, 80);
+  if(id==='sc-bbkk') setTimeout(scaleBBKK, 80);
+}
+
+// ═══════════════════════════════════════════════════════
+// UPLOAD SETUP
+// ═══════════════════════════════════════════════════════
+function tk_setupDZ(dzId, fiId, type) {
+  const dz = document.getElementById(dzId);
+  const fi = document.getElementById(fiId);
+  dz.addEventListener('dragover', e=>{e.preventDefault();dz.classList.add('drag');});
+  dz.addEventListener('dragleave', ()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop', e=>{
+    e.preventDefault();dz.classList.remove('drag');
+    const f=e.dataTransfer.files[0];if(f)loadWB(f,type);
+  });
+  fi.addEventListener('change', e=>{if(e.target.files[0])loadWB(e.target.files[0],type);});
+}
+tk_setupDZ('dz-xuat','fi-xuat','xuat');
+tk_setupDZ('dz-nhap','fi-nhap','nhap');
+tk_setupDZ('dz-ton','fi-ton','ton');
+
+function loadWB(file, type) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+    if(type==='xuat'){xuatWB=wb;markDZ('dz-xuat','fn-xuat',file.name);}
+    else if(type==='nhap'){nhapWB=wb;markDZ('dz-nhap','fn-nhap',file.name);}
+    else{tonWB=wb;markDZ('dz-ton','fn-ton',file.name);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+function markDZ(dzId,fnId,name){
+  document.getElementById(dzId).classList.add('ok');
+  const fn=document.getElementById(fnId);fn.textContent='✓ '+name;fn.classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════════════
+// DATE PARSING
+// ═══════════════════════════════════════════════════════
+function parseDate(raw){
+  if(!raw && raw!==0) return null;
+  if(typeof raw==='number'){
+    const d=XLSX.SSF.parse_date_code(raw);
+    if(d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  const s=raw.toString().trim();
+  const iso=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const sl=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(sl){
+    const p1=parseInt(sl[1]),p2=parseInt(sl[2]),yr=sl[3];
+    const s1=String(p1).padStart(2,'0'),s2=String(p2).padStart(2,'0');
+    if(p1>12) return `${yr}-${s2}-${s1}`;
+    if(p2>12) return `${yr}-${s1}-${s2}`;
+    return `${yr}-${s1}-${s2}`; // ambiguous → MM/DD
+  }
+  return null;
+}
+
+function tk_isoToDisplay(iso){
+  if(!iso) return '';
+  const [y,m,d]=iso.split('-');return `${d}/${m}/${y}`;
+}
+
+function isoToYM(iso){ // YYYY-MM
+  if(!iso) return '';
+  return iso.substring(0,7);
+}
+
+function prevMonthLastDay(iso){ // last day of prev month from any date in that month
+  if(!iso) return null;
+  const [y,m]=iso.split('-').map(Number);
+  const d=new Date(y,m-1,0); // day 0 of current month = last day of prev month
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ═══════════════════════════════════════════════════════
+// PARSE SHEET — generic
+// ═══════════════════════════════════════════════════════
+function tk_parseSheet(wb, typeFilter) {
+  // typeFilter: array or null (take all)
+  for(const sname of wb.SheetNames){
+    const ws=wb.Sheets[sname];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+    let hi=-1;
+    for(let i=0;i<Math.min(rows.length,20);i++){
+      const r=rows[i].map(c=>(c||'').toString().toLowerCase().trim());
+      const hasDrug=r.some(c=>c==='tên hàng'||c.includes('tên hàng'));
+      const hasQty=r.some(c=>c==='số lượng'||c.includes('số lượng'));
+      const hasType=r.some(c=>c.includes('loại chứng từ'));
+      if(hasDrug&&hasQty&&hasType){hi=i;break;}
+    }
+    if(hi===-1) continue;
+    const hdrs=rows[hi].map(h=>(h||'').toString().trim().toLowerCase());
+    const ci=name=>{
+      const ex=hdrs.findIndex(h=>h===name);
+      return ex!==-1?ex:hdrs.findIndex(h=>h.includes(name));
+    };
+    const dateCol=ci('ngày ct')!==-1?ci('ngày ct'):ci('ngày');
+    const maCol  =ci('mã hàng');
+    const tenCol =ci('tên hàng');
+    const hlCol  =ci('hàm lượng');
+    const slCol  =ci('số lượng');
+    const typeCol=ci('loại chứng từ');
+    const khoaCol=ci('khoa phòng'); // -1 if absent (nhap file)
+    const loCol  =ci('lô');
+    const hanCol =hdrs.findIndex(h=>h.includes('hạn'));
+    const tenCtyCol=hdrs.findIndex(h=>h==='tên'); // nhap: Tên = tên công ty
+    if([dateCol,tenCol,slCol,typeCol].some(i=>i===-1)) continue;
+    const recs=[];
+    for(let i=hi+1;i<rows.length;i++){
+      const row=rows[i];
+      const loaiCT=(row[typeCol]||'').toString().trim();
+      if(!loaiCT) continue;
+      if(typeFilter&&!typeFilter.some(t=>loaiCT.toLowerCase()===t.toLowerCase())) continue;
+      const ten=(row[tenCol]||'').toString().trim();
+      if(!ten) continue;
+      const iso=parseDate(row[dateCol]);
+      if(!iso) continue;
+      const sl=parseFloat(row[slCol])||0;
+      if(!sl) continue;
+      const ma=maCol!==-1?(row[maCol]||'').toString().trim():'';
+      const hl=hlCol!==-1?(row[hlCol]||'').toString().trim():'';
+      const khoa=khoaCol!==-1?(row[khoaCol]||'').toString().trim():'';
+      const lo=loCol!==-1?(row[loCol]||'').toString().trim():'';
+      const han=hanCol!==-1?parseDate(row[hanCol]):'';
+      const tenCty=tenCtyCol!==-1?(row[tenCtyCol]||'').toString().trim():'';
+      recs.push({date:iso,ma,ten,hl,loaiCT,sl,khoa,lo,han,tenCty});
+    }
+    return recs;
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════
+// PROCESS DATA
+// ═══════════════════════════════════════════════════════
+function processData(){
+  const errBox=document.getElementById('err-box');
+  errBox.classList.add('hidden');
+  if(!xuatWB){showErr('Vui lòng chọn file Xuất kho.');return;}
+  if(!nhapWB){showErr('Vui lòng chọn file Nhập kho.');return;}
+  const btn=document.getElementById('btn-process');
+  btn.disabled=true;btn.innerHTML='<span class="spinner">⚡</span> Đang xử lý…';
+  setTimeout(()=>{
+    try{
+      const xRecs=tk_parseSheet(xuatWB, XUAT_TYPES);
+      if(!xRecs||xRecs.length===0){showErr('Không đọc được dữ liệu từ file Xuất kho.');return;}
+      const nRecs=tk_parseSheet(nhapWB, NHAP_TYPES);
+      if(!nRecs||nRecs.length===0){showErr('Không đọc được dữ liệu từ file Nhập kho.');return;}
+      allXuat=xRecs;allNhap=nRecs;
+      // Build drugMap by mã hàng
+      drugMap={};
+      [...xRecs,...nRecs].forEach(r=>{
+        const key=r.ma||r.ten;
+        if(!drugMap[key]) drugMap[key]={name:r.ten,hl:r.hl,ma:r.ma};
+      });
+      // Parse tồn kho file if available
+      if(tonWB){
+        parseTonFile();
+        buildAndGo();
+      } else {
+        // Show manual input screen
+        buildTonInputScreen();
+        goScreen('sc-ton');
+      }
+    }catch(e){showErr('Lỗi: '+e.message);console.error(e);}
+    finally{btn.disabled=false;btn.innerHTML='⚡ Xử lý dữ liệu';}
+  },50);
+}
+
+function parseTonFile(){
+  tonMap={};
+  for(const sname of tonWB.SheetNames){
+    const ws=tonWB.Sheets[sname];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+    let hi=-1;
+    for(let i=0;i<Math.min(rows.length,15);i++){
+      const r=rows[i].map(c=>(c||'').toString().toLowerCase().trim());
+      if(r.some(c=>c.includes('mã hàng'))&&r.some(c=>c.includes('số lượng')||c.includes('tồn'))){hi=i;break;}
+    }
+    if(hi===-1) continue;
+    const hdrs=rows[hi].map(h=>(h||'').toString().toLowerCase().trim());
+    const ci=name=>hdrs.findIndex(h=>h.includes(name));
+    const maC=ci('mã hàng');const slC=ci('số lượng')!==-1?ci('số lượng'):ci('tồn');
+    if(maC===-1||slC===-1) continue;
+    for(let i=hi+1;i<rows.length;i++){
+      const row=rows[i];
+      const ma=(row[maC]||'').toString().trim();
+      const sl=parseFloat(row[slC])||0;
+      if(ma) tonMap[ma]=sl;
+    }
+    break;
+  }
+}
+
+function buildTonInputScreen(){
+  const tbody=document.getElementById('ton-tbody');
+  tbody.innerHTML='';
+  Object.keys(drugMap).sort().forEach(key=>{
+    const d=drugMap[key];
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><span class="mcode">${d.ma||key}</span></td>
+      <td style="font-size:12px;font-weight:600">${d.name} <span style="color:var(--t2);font-size:10px">${d.hl}</span></td>
+      <td><input class="ton-input" type="number" min="0" value="0" data-key="${key}" placeholder="0"></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function confirmTon(){
+  tonMap={};
+  document.querySelectorAll('.ton-input').forEach(inp=>{
+    const key=inp.dataset.key;
+    const val=parseFloat(inp.value)||0;
+    tonMap[key]=val;
+  });
+  buildAndGo();
+}
+
+function skipTon(){
+  tonMap={};
+  buildAndGo();
+}
+
+function buildAndGo(){
+  buildThekho();
+  updateHeroStats();
+  renderDrugList();
+  goScreen('sc-the-kho');
+  if(document.getElementById('nb-the-kho')) document.getElementById('nb-the-kho').classList.add('active');
+  // Pre-render BBKK in background
+  setTimeout(renderBBKK, 200);
+}
+
+// ═══════════════════════════════════════════════════════
+// BUILD THẺ KHO per mã hàng
+// Cấu trúc mỗi ngày:
+//   - 1 dòng tổng hợp khoa điều trị (Chuyển kho + Trả thuốc)
+//   - 1 dòng tủ trực (nếu có)
+//   - 1 dòng nhập kho/cty (nếu có)
+// ═══════════════════════════════════════════════════════
+function buildThekho(){
+  // Group all records by mã hàng
+  const byMa={};
+  const addRec=(arr,sign)=>{
+    arr.forEach(r=>{
+      const key=r.ma||r.ten;
+      if(!byMa[key]) byMa[key]={xuat:[],nhap:[]};
+      if(sign==='xuat') byMa[key].xuat.push(r);
+      else byMa[key].nhap.push(r);
+    });
+  };
+  addRec(allXuat,'xuat');
+  addRec(allNhap,'nhap');
+
+  const sumSL = arr => arr.reduce((s,r) => s + r.sl, 0);
+
+  Object.keys(byMa).forEach(key=>{
+    const d=byMa[key];
+    const drug=drugMap[key]||{name:key,hl:'',ma:key};
+    const ton0=tonMap[key]||0;
+
+    const allDates=new Set([...d.xuat.map(r=>r.date),...d.nhap.map(r=>r.date)]);
+    const sortedDates=[...allDates].sort();
+    if(sortedDates.length===0){drug.ledger=[];drug.ton0=ton0;return;}
+
+    const firstDate=sortedDates[0];
+    const lastDayPrev=prevMonthLastDay(firstDate);
+    const ledger=[];
+
+    // Row 0: kiểm kê cuối tháng trước
+    ledger.push({date:lastDayPrev,type:'kk',noidung:'Kho kiểm kê',nhap:0,xuat:0,ton:ton0,ghichu:''});
+    let curTon=ton0;
+
+    sortedDates.forEach(date=>{
+      const xDate=d.xuat.filter(r=>r.date===date);
+      const nDate=d.nhap.filter(r=>r.date===date);
+
+      // ── 1. Chuyển kho → Khoa điều trị (gộp thành 1 dòng) ──
+      const xuatKhoa = xDate.filter(r => r.loaiCT.toLowerCase()==='chuyển kho');
+      const nhapKhoa = nDate.filter(r => {
+        const lt = r.loaiCT.toLowerCase();
+        return (lt.includes('trả thuốc theo yêu cầu') || lt==='trả thuốc theo yêu cầu')
+          && !TU_TRUC_NHAP.some(t=>lt.includes(t.toLowerCase()));
+      });
+      const xKhoa = sumSL(xuatKhoa);
+      const nKhoa = sumSL(nhapKhoa);
+      if(xKhoa>0||nKhoa>0){
+        curTon = curTon - xKhoa + nKhoa;
+        ledger.push({date,type:'khoa',noidung:'Khoa điều trị',nhap:nKhoa,xuat:xKhoa,ton:curTon,ghichu:''});
+      }
+
+      // ── 2. Xuất chuyển kho → Kho dược / phòng mổ (dòng riêng) ──
+      const xuatPhongMo = xDate.filter(r => r.loaiCT.toLowerCase()==='xuất chuyển kho');
+      const xPhongMo = sumSL(xuatPhongMo);
+      if(xPhongMo>0){
+        curTon -= xPhongMo;
+        ledger.push({date,type:'phongmo',noidung:'Kho dược',nhap:0,xuat:xPhongMo,ton:curTon,ghichu:'Điều chuyển phòng mổ'});
+      }
+
+      // ── 2b. Xuất chuyển kho từ file Nhập → Kho phòng mổ điều chuyển về (dòng riêng) ──
+      const nhapPhongMo = nDate.filter(r => r.loaiCT.toLowerCase()==='xuất chuyển kho');
+      const nPhongMo = sumSL(nhapPhongMo);
+      if(nPhongMo>0){
+        curTon += nPhongMo;
+        ledger.push({date,type:'phongmo_nhap',noidung:'Kho phòng mổ',nhap:nPhongMo,xuat:0,ton:curTon,ghichu:'Phòng mổ điều chuyển'});
+      }
+
+      // ── 3. Xuất kho đến tủ trực → dòng riêng, noidung="Khoa điều trị", ghichu="Xuất tủ trực" ──
+      // Loại CT: "Xuất tủ trực", "Xuất thuốc đến tủ trực", "Xuất kho đến tủ trực"
+      const xuatTuTruc = xDate.filter(r => {
+        const lt = r.loaiCT.toLowerCase();
+        return lt.includes('xuất tủ trực') || lt.includes('xuất thuốc đến tủ trực') || lt.includes('xuất kho đến tủ trực');
+      });
+      const xTT = sumSL(xuatTuTruc);
+      if(xTT>0){
+        curTon -= xTT;
+        ledger.push({date,type:'tutruc',noidung:'Khoa điều trị',nhap:0,xuat:xTT,ton:curTon,ghichu:'Xuất tủ trực'});
+      }
+
+      // ── 4. Nhập kho từ tủ trực → dòng riêng, noidung="Khoa điều trị", ghichu="Nhập tủ trực" ──
+      // Loại CT: "Trả thuốc từ tủ trực", "Nhập kho từ tủ trực", "Nhập tủ trực"
+      const nhapTuTruc = nDate.filter(r => {
+        const lt = r.loaiCT.toLowerCase();
+        return lt.includes('trả thuốc từ tủ trực') || lt.includes('nhập kho từ tủ trực') || lt.includes('nhập tủ trực');
+      });
+      const nTT = sumSL(nhapTuTruc);
+      if(nTT>0){
+        curTon += nTT;
+        ledger.push({date,type:'tutruc',noidung:'Khoa điều trị',nhap:nTT,xuat:0,ton:curTon,ghichu:'Nhập tủ trực'});
+      }
+
+      // ── 5. Nhập kho từ công ty (mỗi lô/cty riêng 1 dòng) ──
+      const nhapKho = nDate.filter(r => {
+        const lt = r.loaiCT.toLowerCase();
+        return lt.includes('nhập kho')
+          && !lt.includes('nhập kho từ tủ trực')
+          && !lt.includes('nhập tủ trực');
+      });
+      const ctyGroups={};
+      nhapKho.forEach(r=>{
+        const k=r.tenCty||'Nhập kho';
+        if(!ctyGroups[k]) ctyGroups[k]={sl:0,lo:r.lo,han:r.han};
+        ctyGroups[k].sl+=r.sl;
+      });
+      Object.entries(ctyGroups).forEach(([cty,info])=>{
+        curTon+=info.sl;
+        const gc=[info.lo&&`Lô: ${info.lo}`,info.han&&`Hạn: ${tk_isoToDisplay(info.han)}`].filter(Boolean).join(' | ');
+        ledger.push({date,type:'nhapkho',noidung:cty||'Nhập kho',nhap:info.sl,xuat:0,ton:curTon,ghichu:gc});
+      });
+    });
+
+    drug.ledger=ledger;
+    drug.ton0=ton0;
+    drugMap[key]=Object.assign(drug,{key,ledger,ton0});
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// UI
+// ═══════════════════════════════════════════════════════
+function updateHeroStats(){
+  const keys=Object.keys(drugMap);
+  document.getElementById('hs-ma').textContent=keys.length;
+  document.getElementById('hs-xuat').textContent=allXuat.length;
+  document.getElementById('hs-nhap').textContent=allNhap.length;
+
+  document.getElementById('tk-stats').innerHTML=
+    `<div class="stile"><div class="sv cv1">${keys.length}</div><div class="sl">Mã hàng</div></div>`+
+    `<div class="stile"><div class="sv cv2">${allNhap.filter(r=>r.loaiCT==='Nhập kho').length}</div><div class="sl">Nhập kho</div></div>`+
+    `<div class="stile"><div class="sv cv3">${allXuat.length}</div><div class="sl">Dòng xuất</div></div>`+
+    `<div class="stile"><div class="sv cv4">${allNhap.filter(r=>TRA_TYPES.some(t=>r.loaiCT===t)).length}</div><div class="sl">Trả thuốc</div></div>`;
+}
+
+function renderDrugList(filter=''){
+  const list=document.getElementById('drug-list');
+  const keys=Object.keys(drugMap).filter(k=>{
+    const d=drugMap[k];
+    const q=filter.toLowerCase();
+    return !filter||d.name.toLowerCase().includes(q)||k.toLowerCase().includes(q)||(d.ma||'').toLowerCase().includes(q);
+  });
+  list.innerHTML='';
+  if(keys.length===0){list.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px;text-align:center">Không tìm thấy</div>';return;}
+  keys.forEach(key=>{
+    const d=drugMap[key];
+    const div=document.createElement('div');
+    div.className='drug-item'+(key===selectedMa?' selected':'');
+    const rowCount=(d.ledger||[]).length-1; // exclude kk row
+    div.innerHTML=`<div class="drug-dot"></div><div class="drug-info"><div class="drug-name">${d.name} ${d.hl?'<span style="color:var(--t2);font-weight:500;font-size:10px">'+d.hl+'</span>':''}</div><div class="drug-code">${d.ma||key}</div></div><div class="drug-badge">${rowCount} dòng</div>`;
+    div.onclick=()=>selectDrug(key);
+    list.appendChild(div);
+  });
+}
+
+function filterDrugs(){renderDrugList(document.getElementById('drug-search').value);}
+
+function selectDrug(key){
+  selectedMa=key;
+  renderDrugList(document.getElementById('drug-search').value);
+  const d=drugMap[key];
+  document.getElementById('sel-name').textContent=d.name;
+  document.getElementById('sel-meta').textContent=`Mã: ${d.ma||key} · ${d.hl} · Tồn đầu: ${(d.ton0||0).toLocaleString('vi-VN')}`;
+  renderA4(key);
+  document.getElementById('tk-preview-area').classList.remove('hidden');
+  document.getElementById('tk-preview-area').style.display='flex';
+  document.getElementById('no-drug-selected').classList.add('hidden');
+  setTimeout(scaleA4,80);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER A4 THẺ KHO
+// ═══════════════════════════════════════════════════════
+function renderA4(key){
+  const d=drugMap[key];
+  const ledger=d.ledger||[];
+  const page=document.getElementById('a4-page');
+  if(ledger.length===0){page.innerHTML='<div class="a4-empty"><div class="a4-empty-icon">📭</div><div>Không có dữ liệu</div></div>';return;}
+
+  let html=`
+    <div class="tk-title">THẺ KHO THUỐC GÂY NGHIỆN – HƯỚNG THẦN – TIỀN CHẤT</div>
+    <div class="tk-drug">Tên thuốc: <span>${d.name}</span> &nbsp; Mã hàng: <span>${d.ma||key}</span></div>
+    <div class="tk-hamluong">Hàm lượng: ${d.hl} &nbsp;&nbsp; Đơn vị tính: Vỏ/Ống/Viên</div>
+    <table class="tk-table">
+      <thead><tr>
+        <th style="width:10%">Ngày tháng năm</th>
+        <th style="width:32%">Nội dung</th>
+        <th style="width:12%">Nhập</th>
+        <th style="width:12%">Xuất</th>
+        <th style="width:12%">Tồn</th>
+        <th style="width:22%">Ghi chú</th>
+      </tr></thead><tbody>`;
+
+  ledger.forEach(row=>{
+    let cls='';
+    if(row.type==='kk') cls='tk-row-kk';
+    else if(row.type==='nhapkho') cls='tk-row-nhap';
+    else if(row.type==='tutruc') cls='tk-row-tra';
+    else if(row.type==='phongmo') cls='tk-row-phongmo';
+    else if(row.type==='phongmo_nhap') cls='tk-row-phongmo';
+    html+=`<tr class="${cls}">
+      <td class="ctr">${tk_isoToDisplay(row.date)}</td>
+      <td class="${row.type==='kk'?'kk':''}">${row.noidung}</td>
+      <td class="r">${row.nhap>0?fmtQty(row.nhap):''}</td>
+      <td class="r">${row.xuat>0?fmtQty(row.xuat):''}</td>
+      <td class="r" style="font-weight:700">${fmtQtyAlways(row.ton)}</td>
+      <td style="font-size:11px;color:#555">${row.ghichu||''}</td>
+    </tr>`;
+  });
+
+  html+='</tbody></table>';
+  page.innerHTML=html;
+  setTimeout(scaleA4,30);
+}
+
+// ═══════════════════════════════════════════════════════
+// A4 SCALE
+// ═══════════════════════════════════════════════════════
+function scaleA4(){
+  const wrap=document.getElementById('prev-scroll');
+  const scaler=document.getElementById('a4-scaler');
+  const page=document.getElementById('a4-page');
+  if(!wrap||!scaler||!page) return;
+  const avail=wrap.offsetWidth;
+  const scale=avail>0?Math.min(1,(avail-2)/794):0.4;
+  scaler.style.transform=`scale(${scale})`;
+  wrap.style.height=(page.offsetHeight*scale+4)+'px';
+}
+window.addEventListener('resize',scaleA4);
+
+// ═══════════════════════════════════════════════════════
+// EXPORT EXCEL
+// ═══════════════════════════════════════════════════════
+function exportExcel(){
+  if(!selectedMa){alert('Chọn mã hàng trước!');return;}
+  const d=drugMap[selectedMa];
+  const ledger=d.ledger||[];
+  const wb2=XLSX.utils.book_new();
+  const aoa=[
+    ['THẺ KHO THUỐC GÂY NGHIỆN – HƯỚNG THẦN – TIỀN CHẤT'],
+    [`Tên thuốc: ${d.name}  |  Mã hàng: ${d.ma||selectedMa}  |  Hàm lượng: ${d.hl}`],
+    [],
+    ['Ngày tháng năm','Nội dung','Nhập','Xuất','Tồn','Ghi chú']
+  ];
+  ledger.forEach(row=>{
+    aoa.push([
+      tk_isoToDisplay(row.date),
+      row.noidung,
+      row.nhap>0 ? (row.nhap < 10 ? String(row.nhap).padStart(2,'0') : row.nhap) : '',
+      row.xuat>0 ? (row.xuat < 10 ? String(row.xuat).padStart(2,'0') : row.xuat) : '',
+      row.ton < 10 && row.ton >= 0 ? String(row.ton).padStart(2,'0') : row.ton,
+      row.ghichu||''
+    ]);
+  });
+  const ws2=XLSX.utils.aoa_to_sheet(aoa);
+  ws2['!merges']=[{s:{r:0,c:0},e:{r:0,c:5}},{s:{r:1,c:0},e:{r:1,c:5}}];
+  ws2['!cols']=[{wch:14},{wch:32},{wch:10},{wch:10},{wch:10},{wch:28}];
+  XLSX.utils.book_append_sheet(wb2,ws2,'Thẻ kho');
+  xlsxDownload(wb2,`The_kho_${(d.ma||selectedMa).replace(/[^a-zA-Z0-9]/g,'_')}.xlsx`);
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORT PDF (print)
+// ═══════════════════════════════════════════════════════
+function exportPDF(){
+  if(!selectedMa){alert('Chọn mã hàng trước!');return;}
+  const d=drugMap[selectedMa];
+  const ledger=d.ledger||[];
+  let rows='';
+  ledger.forEach(row=>{
+    let cls='';
+    if(row.type==='kk') cls='background:#fafafa;font-style:italic';
+    else if(row.type==='nhapkho') cls='background:#f0fff8';
+    else if(row.type==='phongmo') cls='background:#f5f0ff';
+    else if(row.type==='phongmo_nhap') cls='background:#f0f0ff';
+    else if(row.type==='tutruc') cls='background:#fff8ec';
+    rows+=`<tr style="${cls}">
+      <td style="text-align:center">${tk_isoToDisplay(row.date)}</td>
+      <td>${row.noidung}</td>
+      <td style="text-align:right">${row.nhap>0?fmtQty(row.nhap):''}</td>
+      <td style="text-align:right">${row.xuat>0?fmtQty(row.xuat):''}</td>
+      <td style="text-align:right;font-weight:700">${fmtQtyAlways(row.ton)}</td>
+      <td style="font-size:11px;color:#555">${row.ghichu||''}</td>
+    </tr>`;
+  });
+    mobilePrint(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Thẻ Kho — ${d.name}</title>
+</head><body>
+<h2>THẺ KHO THUỐC GÂY NGHIỆN – HƯỚNG THẦN – TIỀN CHẤT</h2>
+<div class="info">Tên thuốc: <b>${d.name}</b> &nbsp; Mã hàng: <b>${d.ma||selectedMa}</b></div>
+<div class="hl">Hàm lượng: ${d.hl} &nbsp;&nbsp; ĐVT: Vỏ/Ống/Viên</div>
+<table><thead><tr><th style="width:11%">Ngày</th><th style="width:31%">Nội dung</th><th style="width:12%">Nhập</th><th style="width:12%">Xuất</th><th style="width:12%">Tồn</th><th style="width:22%">Ghi chú</th></tr></thead>
+<tbody>${rows}</tbody></table>
+
+
+<!-- ═══════════════════════════════════════════════════
+     MODULES — thứ tự quan trọng
+     shared.js    : state dùng chung + GitHub sync
+     module-utils : layout, mobile detect
+     module-bbhv  : Biên Bản Huỷ Vỏ
+     module-tk    : Thẻ kho + BBKK + BBXNT
+     module-tt20  : TT20
+═══════════════════════════════════════════════════ -->
+<script src="shared.js"></script>
+<script src="module-utils.js"></script>
+<script src="module-bbhv.js"></script>
+<script src="module-tk.js"></script>
+<script src="module-tt20.js"></script>
+
+</body>
+</html>
